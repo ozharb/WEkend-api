@@ -1,0 +1,1 @@
+ALTER TABLE WEkend_attendance DROP COLUMN IF EXISTS alert;
