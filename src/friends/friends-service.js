@@ -5,6 +5,12 @@ const FriendsService = {
   getAllFriends(knex, host) {
     return knex.select('*').from('wekend_friends').where({host});
   },
+  checkId(knex, id) {
+    return knex('wekend_users')
+      .where({id})
+      .first()
+      .then(userExists => !!userExists)
+  },
   checkFriendRequest(knex, sender_id, newFriend) {
     return knex('wekend_friends')
       .where({sender_id})
@@ -122,6 +128,7 @@ const FriendsService = {
       })
   },
   getByUsername(knex, username) {
+    console.log('USERNAME:',username)
     return knex('wekend_users AS u')
       .select(
         'u.username',
@@ -129,7 +136,9 @@ const FriendsService = {
         'u.nickname',
         'u.city'
       )
-      .where( username )
+      .where( 'username', 'ilike', username )
+      .orWhere('nickname', 'ilike', username)
+      .orWhere('fullname', 'ilike', username)
    
   },
   getByIds(knex, sender_id, receiver_id) {

@@ -69,16 +69,16 @@ EventsRouter
 
   .patch(requireAuth, jsonParser, (req, res, next) => {
     const { id, title, time, place, details, day } = req.body;
-    const eventToUpdate = { title, time, place, details, day };
+    const eventToUpdate = { id, title, time, place, details, day };
 
     const numberOfValues = Object.values(eventToUpdate).filter(Boolean).length;
-    if (numberOfValues === 0)
+    if (numberOfValues === 1)
       return res.status(400).json({
         error: {
           message: 'Request body must contain \'id\' and either \'title\', \'time\', \'place\',\'details\', or \'day\''
         }
       });
-  
+  console.log('api edit event request:',req.body)
     EventsService.updateEvent(
       req.app.get('db'),
       id,
@@ -92,7 +92,11 @@ EventsRouter
           attendanceToUpdate
         )
         .then(()=>{
-          res.status(204).end();
+
+          res
+          .status(204)
+          .end()
+         
         })
 
         
@@ -176,7 +180,7 @@ EventsRouter
   })
 /// not using this right now
 EventsRouter
-  .route('/event_id')
+  .route('/event/:event_id')
   .all(requireAuth)
   .all((req, res, next) => {
     EventsService.getById(
