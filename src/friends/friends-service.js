@@ -128,7 +128,6 @@ const FriendsService = {
       })
   },
   getByUsername(knex, username) {
-    console.log('USERNAME:',username)
     return knex('wekend_users AS u')
       .select(
         'u.username',

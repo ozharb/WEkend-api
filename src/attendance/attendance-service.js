@@ -60,7 +60,6 @@ const AttendanceService = {
       .delete();
   },
   updateAllAttendance(knex, event_id, attendanceToUpdate) {
-    console.log("UPDATE ALL ATTENDANCE:",attendanceToUpdate, "EVENT:", event_id)
     return knex('wekend_attendance')
       .where( {event_id})
       .update(attendanceToUpdate);

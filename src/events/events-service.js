@@ -126,7 +126,8 @@ const EventsService = {
 
   },
   getById(knex, id) {
-    return knex.from('wekend_events').select('*').where('id', id).first();
+    return knex.from('wekend_events')
+    .select('*').where('id', id).first();
   },
   deleteEvent(knex, id) {
     return knex('wekend_events')

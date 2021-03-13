@@ -48,11 +48,13 @@ FriendsRouter
   //event data with the new filters. 
 
   .patch(requireAuth, jsonParser, (req, res, next) => {
+    console.log('FRIEND FILTER:', req.body)
     const { friend_id, friend_filter } = req.body;
     const friendToUpdate = { friend_id, friend_filter };
 
     const numberOfValues = Object.values(friendToUpdate).filter(Boolean).length;
-    if (numberOfValues === 1)
+    console.log('number of values:',numberOfValues)
+    if (numberOfValues === 0)
       return res.status(400).json({
         error: {
           message: 'Request body must contain a \'friend_id\' and \'friend_filter\''
@@ -113,7 +115,6 @@ FriendsRouter
                     EventsService.getFilteredEvents(
                       req.app.get('db'), friendsIds)
                       .then(eventsNoAttendees => {
-                        console.log(result)
                         for (let ev of eventsNoAttendees) {
                           let alert = result.filter(att => att[ev.id] === req.user.username).length === 1 ?
                             result.filter(att => att[ev.id] === req.user.username)[0].alert
@@ -155,7 +156,6 @@ FriendsRouter
       /// get just the ids of friends that are confirmed and filter is off
 
       .then(friendship => {
-        console.log("FRIENDSHIP:", friendship)
         let isReceiver = friendship[0].receiver_id === req.user.id
 
         if (isReceiver) {
@@ -273,7 +273,6 @@ FriendsRouter
       newFriend.receiver_id
     )
       .then(idExists => {
-        console.log("idExists:", idExists)
         if (!idExists)
           return res.status(400).json({ error: 'cannot find user id' })
 
@@ -284,7 +283,6 @@ FriendsRouter
           newFriend
         )
           .then(frienshipError => {
-            console.log("frienshipError:", frienshipError)
             if (frienshipError)
               return res.status(400).json({ error: 'You may already be friends with this user or have sent or received a friend request from them. Please check your friend dashboard' })
 
@@ -312,7 +310,6 @@ FriendsRouter
                     ? fr['friend_id'] = fr.receiver_id
                     : fr['friend_id'] = fr.sender_id
                 }
-                console.log("FRIEND:",friend)
                 res
                   .status(201)
                   .json(friendsArray.find(fr=>(fr.receiver_id === friend[0].receiver_id)&& (fr.sender_id===friend[0].sender_id)));
@@ -358,7 +355,6 @@ FriendsRouter
   .post(jsonParser, (req, res, next) => {
     const { username } = req.body;
     const friendTofind = { username };
-console.log('REQUEST:', friendTofind)
     const numberOfValues = Object.values(friendTofind).filter(Boolean).length;
     if (numberOfValues === 0)
       return res.status(400).json({
@@ -376,7 +372,6 @@ console.log('REQUEST:', friendTofind)
             error: { message: `user doesn't exist` }
           })
         }
-        console.log('reulsts:', friend)
         res.json(friend); // save the list for the next middleware
         // don't forget to call next so the next middleware happens!
       })

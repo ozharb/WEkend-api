@@ -57,6 +57,7 @@ EventsRouter
           req.app.get('db'),
           newEvent
         )
+
         res
           .status(201)
           .location(path.posix.join(req.originalUrl, `/${event.id}`))
@@ -78,7 +79,6 @@ EventsRouter
           message: 'Request body must contain \'id\' and either \'title\', \'time\', \'place\',\'details\', or \'day\''
         }
       });
-  console.log('api edit event request:',req.body)
     EventsService.updateEvent(
       req.app.get('db'),
       id,
@@ -154,7 +154,6 @@ EventsRouter
             EventsService.getFilteredEvents(
               req.app.get('db'), friendsIds)
               .then(eventsNoAttendees => {
-                console.log(result)
                 for (let ev of eventsNoAttendees) {
                   let alert = result.filter(att => att[ev.id]===req.user.username).length===1 ?
                   result.filter(att => att[ev.id]===req.user.username)[0].alert
@@ -182,7 +181,7 @@ EventsRouter
 EventsRouter
   .route('/event/:event_id')
   .all(requireAuth)
-  .all((req, res, next) => {
+  .get((req, res, next) => {
     EventsService.getById(
       req.app.get('db'),
       req.params.event_id
@@ -193,14 +192,11 @@ EventsRouter
             error: { message: `Event doesn't exist` }
           })
         }
-        res.event = event // save the list for the next middleware
-        next() // don't forget to call next so the next middleware happens!
+        res.json(serializeEvent(event))
+
       })
       .catch(next)
-  })
-  .get((req, res, next) => {
-    res.json(serializeEvent(res.event));
-  })
+    })
   .delete((req, res, next) => {
     const knexInstance = req.app.get('db');
     EventsService.deleteEvent(knexInstance, req.params.list_id)
