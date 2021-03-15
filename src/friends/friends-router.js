@@ -48,12 +48,11 @@ FriendsRouter
   //event data with the new filters. 
 
   .patch(requireAuth, jsonParser, (req, res, next) => {
-    console.log('FRIEND FILTER:', req.body)
     const { friend_id, friend_filter } = req.body;
     const friendToUpdate = { friend_id, friend_filter };
 
     const numberOfValues = Object.values(friendToUpdate).filter(Boolean).length;
-    console.log('number of values:',numberOfValues)
+
     if (numberOfValues === 0)
       return res.status(400).json({
         error: {

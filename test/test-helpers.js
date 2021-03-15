@@ -114,6 +114,11 @@ function makeAttendeesArray(users){
       attendee_id:users[2].id, 
       alert: false
     },
+    {
+      event_id: 4, 
+      attendee_id:users[2].id, 
+      alert: false
+    },
   ]
 }
 function makeFriendsArray(users) {
@@ -132,7 +137,7 @@ function makeFriendsArray(users) {
         sender_filter: false,
         receiver_filter: false,
         confirmed: true,
-        date_made: '2019-01-12T16:28:32.615Z',
+        date_created: '2019-01-12T16:28:32.615Z',
     },
     {
       sender_id: users[2].id,
@@ -140,7 +145,7 @@ function makeFriendsArray(users) {
       sender_filter: false,
       receiver_filter: false,
       confirmed: true,
-      date_made: '2019-01-12T16:28:32.615Z',
+      date_created: '2019-01-12T16:28:32.615Z',
     },
     {
       sender_id: users[3].id,
@@ -148,20 +153,16 @@ function makeFriendsArray(users) {
       sender_filter: false,
       receiver_filter: false,
       confirmed: true,
-      date_made: '2021-01-12T14:28:32.615Z',
+      date_created: '2021-01-12T14:28:32.615Z',
     },
   ];
 }
-function makeExpectedEvent(users, event, attendees=[]) {
+function makeEvent(users, event ) {
   const eventUser = users
     .find(user => user.id === event.host)
 
-  const eventAttendees = attendees
-    .filter(attendee => attendee.event_id === event.id)
-
+  
   return {
-    Event_Host: eventUser.username,
-    alert: false,
     id: event.id,
     title: event.title,
     date_published: event.date_published,
@@ -170,10 +171,29 @@ function makeExpectedEvent(users, event, attendees=[]) {
     details: event.details,
     place: event.place,
     day: event.day,
-    attendees: eventAttendees
   }
 }
-function makeExpectedEvents(user, events=[], friends=[], attendees = [], users) {
+function makeExpectedUserFriends(user, users, friends){
+  let usersObj = {}
+  for(let userKey of users){
+
+  usersObj[userKey.id] = userKey.username
+  }
+  let friendship = friends.filter(fr =>  (fr.sender_id===user.id || fr.receiver_id ===user.id))
+
+for(let fr of friendship){
+  fr['sender'] = usersObj[fr.sender_id]
+  fr['receiver'] = usersObj[fr.receiver_id]
+  fr['friend'] = (fr.sender_id===user.id)
+  ? usersObj[fr.receiver_id]
+  : usersObj[fr.sender_id]
+  fr['friend_id'] = (fr.sender_id===user.id)
+  ? fr.receiver_id
+  : fr.sender_id
+}
+return friendship
+}
+function makeExpectedUserEvents(user, events=[], friends=[], attendees = [], users) {
 
   function getevAttendees(event, users, attendees){
     let evAttendees = attendees.filter(at=>at.event_id===event.id)
@@ -212,13 +232,15 @@ function makeMaliciousEvent (user) {
   const maliciousEvent = {
     id: 911,
     date_published: new Date(),
+    day: 'Friday',
+    time: '17:00:00',
     title: 'Naughty naughty very naughty <script>alert("xss");</script>',
     place: 'Naughty naughty very naughty <script>alert("xss");</script>',
     details: 'Naughty naughty very naughty <script>alert("xss");</script>',
     host: user.id
   }
   const expectedEvent = {
-    ...makeExpectedEvent([user], maliciousEvent),
+    ...makeEvent([user], maliciousEvent),
     title: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     place: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     details: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
@@ -231,28 +253,35 @@ function makeMaliciousEvent (user) {
 
 function makeEventsFixtures() {
   const testUsers = makeUsersArray()
+
   const testEvents = makeEventsArray(testUsers)
   const testFriends = makeFriendsArray(testUsers)
   const testAttendees = makeAttendeesArray(testUsers)
   return { testUsers, testEvents, testFriends, testAttendees}
 }
+function makeFriendsFixtures() {
+const testUsers = makeUsersArray()
+const testFriends = makeFriendsArray(testUsers)
 
+  return { testUsers, testFriends}
+}
 function cleanTables(db) {
+
   return db.transaction(trx =>
     trx.raw(
       `TRUNCATE
-        wekend_events,
-        wekend_users,
-        wekend_friends,
-        wekend_attendance
+        WEkend_events,
+        WEkend_users,
+        WEkend_friends,
+        WEkend_attendance
       `
     )
     .then(() =>
       Promise.all([
-        trx.raw(`ALTER SEQUENCE wekend_events_id_seq minvalue 0 START WITH 1`),
-        trx.raw(`ALTER SEQUENCE wekend_users_id_seq minvalue 0 START WITH 1`),
-        trx.raw(`SELECT setval('wekend_events_id_seq', 0)`),
-        trx.raw(`SELECT setval('wekend_users_id_seq', 0)`),
+        trx.raw(`ALTER SEQUENCE WEkend_events_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`ALTER SEQUENCE WEkend_users_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`SELECT setval('WEkend_events_id_seq', 0)`),
+        trx.raw(`SELECT setval('WEkend_users_id_seq', 0)`),
       ])
     )
   )
@@ -288,6 +317,14 @@ function seedEventsTables(db, users, events, attendees=[]) {
     }
   })
 }
+function seedFriendsTables(db, users, friends) {
+  // use a transaction to group the queries and auto rollback on any failure
+  return db.transaction(async trx => {
+    await seedUsers(trx, users)
+    await trx.into('wekend_friends').insert(friends)
+   
+  })
+}
 
 function seedMaliciousEvent(db, user, event) {
   return seedUsers(db, [user])
@@ -310,15 +347,18 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
 module.exports = {
   makeUsersArray,
   makeEventsArray,
-  makeExpectedEvent,
-  makeExpectedEvents,
+  makeEvent,
+  makeExpectedUserEvents,
+  makeExpectedUserFriends,
   makeMaliciousEvent,
   makeFriendsArray,
   makeAttendeesArray,
   seedUsers,
   makeEventsFixtures,
+  makeFriendsFixtures,
   cleanTables,
   seedEventsTables,
+  seedFriendsTables,
   seedMaliciousEvent,
   makeAuthHeader,
 }
