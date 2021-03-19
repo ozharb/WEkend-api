@@ -70,8 +70,7 @@ describe('Users Endpoints', function() {
             password: '*'.repeat(73),
             fullname: 'test fullname',
           }
-          // console.log(userLongPassword)
-          // console.log(userLongPassword.password.length)
+         
           return supertest(app)
             .post('/api/users')
             .send(userLongPassword)

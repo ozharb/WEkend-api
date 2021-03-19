@@ -57,7 +57,6 @@ EventsRouter
           req.app.get('db'),
           newEvent
         )
-
         res
           .status(201)
           .location(path.posix.join(req.originalUrl, `/${event.id}`))
@@ -65,7 +64,7 @@ EventsRouter
       })
       .catch(next);
   })
-    //when a change is made to an event, all attendees should be notified. 
+  //when a change is made to an event, all attendees should be notified. 
   //set alert status to true for all attnendances
 
   .patch(requireAuth, jsonParser, (req, res, next) => {
@@ -84,22 +83,18 @@ EventsRouter
       id,
       eventToUpdate
     )
-      .then( () => {
-       let attendanceToUpdate = { alert: "true"}
+      .then(() => {
+        let attendanceToUpdate = { alert: "true" }
         AttendanceService.updateAllAttendance(
           req.app.get('db'),
           id,
           attendanceToUpdate
         )
-        .then(()=>{
-
-          res
-          .status(204)
-          .end()
-         
-        })
-
-        
+          .then(() => {
+            res
+              .status(204)
+              .end()
+          })
       })
       .catch(next);
   })
@@ -129,14 +124,17 @@ EventsRouter
 
     FriendsService.getByIdUser(
       req.app.get('db'), req.user.id)
-/// get just the ids of friends that are confirmed and filter is off
+
+      /// get just the ids of friends that are confirmed and filter is off
+
       .then(friendIdsArray => {
         friendsIds = friendIdsArray.reduce((arr, el) => {
           el.sender === req.user.id ? arr.push(el.receiver) : arr.push(el.sender)
           return arr
         }, [])
         friendsIds.push(req.user.id)
-//use the ids to generate list of event ids and usernames of attendees
+
+        //use the ids to generate list of event ids and usernames of attendees
 
         EventsService.getFilteredEventsWithAttendees(
           req.app.get('db'), friendsIds)
@@ -146,38 +144,33 @@ EventsRouter
             for (let ev of eventRes) {
               let attendance = {}
               attendance[ev.id] = ev.Event_Attendee
-              attendance['alert']= ev.alert
+              attendance['alert'] = ev.alert
               result.push(attendance)
             }
-//add usernames of attendees to the list of events for user
-//add alert status to each attendee.
+            
+            //add usernames of attendees to the list of events for user
+            //add alert status to each attendee.
+
             EventsService.getFilteredEvents(
               req.app.get('db'), friendsIds)
               .then(eventsNoAttendees => {
                 for (let ev of eventsNoAttendees) {
-                  let alert = result.filter(att => att[ev.id]===req.user.username).length===1 ?
-                  result.filter(att => att[ev.id]===req.user.username)[0].alert
-                  : null
+                  let alert = result.filter(att => att[ev.id] === req.user.username).length === 1 ?
+                    result.filter(att => att[ev.id] === req.user.username)[0].alert
+                    : null
                   ev['alert'] = alert
-                  ev["attendees"] = result.filter(att => att[ev.id]).reduce((arr, el)=>{
-                    arr.push({'username': el[ev.id], 'alert': el['alert']})
+                  ev["attendees"] = result.filter(att => att[ev.id]).reduce((arr, el) => {
+                    arr.push({ 'username': el[ev.id], 'alert': el['alert'] })
                     return arr
-                  },[])
-                  // .map(el => [el[ev.id], el['alert']])
+                  }, [])
                 }
                 res.json(eventsNoAttendees.map(serializeEvent))
-
               })
-
           })
-
       })
-
       .catch(next);
-
-
   })
-/// not using this right now
+
 EventsRouter
   .route('/event/:event_id')
   .all(requireAuth)
@@ -196,7 +189,7 @@ EventsRouter
 
       })
       .catch(next)
-    })
+  })
   .delete((req, res, next) => {
     const knexInstance = req.app.get('db');
     EventsService.deleteEvent(knexInstance, req.params.list_id)
@@ -206,7 +199,7 @@ EventsRouter
       .catch(next)
   })
 
-  
+
   .patch(requireAuth, jsonParser, (req, res, next) => {
     const { title, time, place, details } = req.body;
     const eventToUpdate = { title, time, place, details };
@@ -238,12 +231,10 @@ async function checkEventExists(req, res, next) {
       req.app.get('db'),
       req.params.event_id
     )
-
     if (!event)
       return res.status(404).json({
         error: `Event doesn't exist`
       })
-
     res.event = event
     next()
   } catch (error) {
