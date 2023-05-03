@@ -1,0 +1,1 @@
+ALTER TABLE WEkend_users DROP COLUMN IF EXISTS email;
