@@ -82,7 +82,7 @@ authRouter
         //update db w/ new password
 
         UsersService.hashPassword(newpassword).then((hashedPassword) => {
-          UsersService.updateUserpassword(
+          return UsersService.updateUserpassword(
             req.app.get("db"),
             dbUser.username,
             hashedPassword
