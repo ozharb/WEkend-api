@@ -22,8 +22,12 @@ const UserService = {
     return knex("wekend_users").where({ id }).delete();
   },
 
-  updateUser(knex, id, newUserFields) {
-    return knex("wekend_users").where({ id }).update(newUserFields);
+  updateUserpassword(knex, username, newUserPassword) {
+    console.log("new user password: " + newUserPassword);
+    console.log("username: " + username);
+    return knex("wekend_users")
+      .where({ username })
+      .update({ password: newUserPassword });
   },
   hasUserWithUserName(knex, username) {
     return knex("wekend_users")

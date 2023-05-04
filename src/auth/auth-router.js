@@ -1,5 +1,8 @@
 const express = require("express");
 const AuthService = require("./auth-service");
+const UsersService = require("../users/user-service");
+const UserService = require("../users/user-service");
+
 const authRouter = express.Router();
 const jsonBodyParser = express.json();
 
@@ -14,7 +17,7 @@ authRouter
           error: `Missing '${key}' in request body`,
         });
 
-    AuthService.getUserWithUserName(req.app.get("db"), loginUser.username)
+    AuthSeçrvice.getUserWithUserName(req.app.get("db"), loginUser.username)
       .then((dbUser) => {
         if (!dbUser)
           return res.status(400).json({
@@ -78,11 +81,20 @@ authRouter
 
         //update db w/ new password
 
+        UsersService.hashPassword(newpassword).then((hashedPassword) => {
+          UsersService.updateUserpassword(
+            req.app.get("db"),
+            dbUser.username,
+            hashedPassword
+          );
+        });
+
         //send email w/ new password
 
         res.send({
           username: dbUser.username,
           email: dbUser.email,
+          password: newpassword,
         });
         console.log("hello! your email is: " + dbUser.email);
         var nodemailer = require("nodemailer");
