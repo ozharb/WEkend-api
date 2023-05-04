@@ -76,9 +76,6 @@ authRouter
           uppercase: true,
         });
 
-        // 'uEyMTw32v9'
-        console.log(newpassword);
-
         //update db w/ new password
 
         UsersService.hashPassword(newpassword).then((hashedPassword) => {
@@ -103,7 +100,7 @@ authRouter
           service: "gmail",
           auth: {
             user: "apiwekend@gmail.com",
-            pass: "qzdlplbrbvpuaflj",
+            pass: process.env.EMAILPW,
           },
         });
 
