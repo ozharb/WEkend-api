@@ -100,14 +100,14 @@ authRouter
           service: "gmail",
           auth: {
             user: "apiwekend@gmail.com",
-            pass: process.env.EMAILPW,
+            pass: process.env.EMAIL_PW,
           },
         });
 
         var mailOptions = {
           from: "apiwekend@gmail.com",
           to: "ozharb@gmail.com",
-          subject: "Sending Email using Node.js",
+          subject: "Password Reset",
           text: "Your new password is: " + newpassword,
         };
 

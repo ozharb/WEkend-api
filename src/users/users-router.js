@@ -31,6 +31,7 @@ UsersRouter.post("/", jsonBodyParser, (req, res, next) => {
           username,
           password: hashedPassword,
           fullname,
+          email,
           nickname,
           city,
           date_created: "now()",

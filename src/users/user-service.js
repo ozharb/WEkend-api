@@ -59,6 +59,7 @@ const UserService = {
       fullname: xss(user.fullname),
       username: xss(user.username),
       nickname: xss(user.nickname),
+      email: xss(user.email),
       city: xss(user.city),
       date_created: new Date(user.date_created),
     };
